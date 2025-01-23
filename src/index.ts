@@ -115,18 +115,16 @@ export class MicrosoftRewardsBot {
 
             this.axios = new Axios(account.proxy)
 
-            if (this.isMobile) {
-                // Mobile Searches and app Check-in
-                await this.Mobile(account)
-            } else {
-                // Desktop Searches, DailySet and More Promotions
-                await this.Desktop(account)
-            }
+            await this.Desktop(account)
+
+            this.isMobile = true
+            await this.Mobile(account)
 
             log('main', 'MAIN-WORKER', `Completed tasks for account ${account.email}`, 'log', 'green')
         }
 
         log(this.isMobile, 'MAIN-PRIMARY', 'Completed tasks for ALL accounts', 'log', 'green')
+        process.exit()
     }
 
     // Desktop
@@ -323,16 +321,6 @@ async function main() {
         } catch (error: any) {
             log(false, 'MAIN-ERROR', `Error running desktop bot: ${error.message}`, 'error')
         }
-
-        // Mobile
-        try {
-            await mobileBot.initialize()
-            await mobileBot.run()
-        } catch (error: any) {
-            log(true, 'MAIN-ERROR', `Error running bots: ${error.message}`, 'error')
-        }
-
-        process.exit(1)
     }
 }
 

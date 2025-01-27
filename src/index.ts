@@ -114,11 +114,21 @@ export class MicrosoftRewardsBot {
             log('main', 'MAIN-WORKER', `Started tasks for account ${account.email}`)
 
             this.axios = new Axios(account.proxy)
+            if (this.config.parallel) {
+                await Promise.all([
+                    this.Desktop(account),
+                    (() => {
+                        const mobileInstance = new MicrosoftRewardsBot(true);
+                        mobileInstance.axios = this.axios
 
-            await this.Desktop(account)
-
-            this.isMobile = true
-            await this.Mobile(account)
+                        return mobileInstance.Mobile(account);
+                    })()
+                ]);
+            } else {
+                await this.Desktop(account)
+                this.isMobile = true
+                await this.Mobile(account)
+            }
 
             log('main', 'MAIN-WORKER', `Completed tasks for account ${account.email}`, 'log', 'green')
         }
@@ -295,32 +305,13 @@ export class MicrosoftRewardsBot {
 }
 
 async function main() {
-    const desktopBot = new MicrosoftRewardsBot(false)  // For desktop tasks
-    const mobileBot = new MicrosoftRewardsBot(true)   // For mobile tasks
+    const rewardsBot = new MicrosoftRewardsBot(false)
 
-    if (desktopBot.config.parallel) {
-        // Run desktop and mobile tasks concurrently
-        await Promise.all([
-            desktopBot.initialize().then(() => {
-                desktopBot.run().catch(error => {
-                    log(false, 'MAIN-ERROR', `Error running bots: ${error?.message}`, 'error')
-                })
-            }),
-            mobileBot.initialize().then(() => {
-                mobileBot.run().catch(error => {
-                    log(true, 'MAIN-ERROR', `Error running bots: ${error?.message}`, 'error')
-                })
-            })
-        ])
-
-    } else {
-        // Run desktop tasks first, then mobile tasks sequentially
-        try {
-            await desktopBot.initialize()
-            await desktopBot.run()
-        } catch (error: any) {
-            log(false, 'MAIN-ERROR', `Error running desktop bot: ${error.message}`, 'error')
-        }
+    try {
+        await rewardsBot.initialize()
+        await rewardsBot.run()
+    } catch (error: any) {
+        log(false, 'MAIN-ERROR', `Error running desktop bot: ${error.message}`, 'error')
     }
 }
 

@@ -35,7 +35,7 @@ export class Login {
             this.bot.log(this.bot.isMobile, 'LOGIN', 'Starting login process!')
 
             // Navigate to the Bing login page
-            await page.goto('https://www.bing.com/rewards/dashboard')
+            await this.gotoWithRetry(page, 'https://www.bing.com/rewards/dashboard')
 
             // Disable FIDO support in login request
             await page.route('**/GetCredentialType.srf*', (route: any) => {
@@ -297,7 +297,7 @@ export class Login {
             route.continue({ postData: JSON.stringify(body) })
         }).catch(()=>{})
 
-        await page.goto(authorizeUrl.href)
+        await this.gotoWithRetry(page, authorizeUrl.href)
 
         let currentUrl = new URL(page.url())
         let code: string
@@ -517,7 +517,7 @@ export class Login {
     private async checkBingLogin(page: Page): Promise<void> {
         try {
             this.bot.log(this.bot.isMobile, 'LOGIN-BING', 'Verifying Bing login')
-            await page.goto('https://www.bing.com/fd/auth/signin?action=interactive&provider=windows_live_id&return_url=https%3A%2F%2Fwww.bing.com%2F')
+            await this.gotoWithRetry(page, 'https://www.bing.com/fd/auth/signin?action=interactive&provider=windows_live_id&return_url=https%3A%2F%2Fwww.bing.com%2F')
 
             const maxIterations = 5
 
@@ -557,6 +557,34 @@ export class Login {
         const isLocked = await page.waitForSelector('#serviceAbuseLandingTitle', { state: 'visible', timeout: 1000 }).then(() => true).catch(() => false)
         if (isLocked) {
             throw this.bot.log(this.bot.isMobile, 'CHECK-LOCKED', 'This account has been locked! Remove the account from "accounts.json" and restart!', 'error')
+        }
+    }
+
+    /**
+     * Navigate to a URL with retry logic. Uses exponential backoff between attempts.
+     * maxRetries defaults to 3 attempts total. Optionally pass Playwright goto options.
+     */
+    private async gotoWithRetry(page: Page, url: string, options?: Parameters<Page['goto']>[1], maxRetries: number = 3) {
+        const start = Date.now()
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                if (attempt > 1) {
+                    this.bot.log(this.bot.isMobile, 'GOTO', `Retrying navigation to ${url} (attempt ${attempt}/${maxRetries})`)
+                }
+                await page.goto(url, options)
+                const elapsed = Date.now() - start
+                this.bot.log(this.bot.isMobile, 'GOTO', `Navigation to ${url} succeeded on attempt ${attempt} (${Math.round(elapsed)}ms)`)
+                return
+            } catch (error) {
+                this.bot.log(this.bot.isMobile, 'GOTO', `Navigation to ${url} failed on attempt ${attempt}: ${error}`, 'warn')
+                if (attempt === maxRetries) {
+                    this.bot.log(this.bot.isMobile, 'GOTO', `Exceeded max navigation retries (${maxRetries}) for ${url}`, 'error')
+                    throw error
+                }
+                // Exponential backoff: base 1000ms
+                const delay = 1000 * Math.pow(2, attempt - 1)
+                await this.bot.utils.wait(delay)
+            }
         }
     }
 }

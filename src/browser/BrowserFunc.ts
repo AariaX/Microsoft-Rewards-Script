@@ -32,7 +32,9 @@ export default class BrowserFunc {
                 return
             }
 
+          try {
             await page.goto(this.bot.config.baseURL)
+          } catch {}
 
             const maxIterations = 5 // Maximum iterations set to 5
 
@@ -64,7 +66,9 @@ export default class BrowserFunc {
                     await this.bot.browser.utils.tryDismissAllMessages(page)
 
                     await this.bot.utils.wait(2000)
-                    await page.goto(this.bot.config.baseURL)
+                    try {
+                      await page.goto(this.bot.config.baseURL)
+                    } catch {}
                 } else {
                     this.bot.log(this.bot.isMobile, 'GO-HOME', 'Visited homepage successfully')
                     break

@@ -356,6 +356,25 @@ export class MicrosoftRewardsBot {
                 this.logger.info('main', 'BROWSER', `Mobile Browser started | ${accountEmail}`)
 
                 await this.login.login(this.mainMobilePage, accountEmail, account.password, account.totp)
+                if (process.env.LOGIN_ONLY) {
+                  this.logger.info('main', 'FLOW', `Login only mode enabled`)
+                  await this.browser.func.closeBrowser(mobileSession!.context, accountEmail)
+
+                  await executionContext.run({isMobile: false, accountEmail}, async () => {
+                    const desktopSession = await this.browserFactory.createBrowser(account.proxy, accountEmail)
+                    const initialContext: BrowserContext = desktopSession.context
+                    const page = await initialContext.newPage()
+
+                    this.logger.info('main', 'BROWSER', `Desktop Browser started | ${accountEmail}`)
+                    await this.login.login(page, accountEmail, account.password, account.totp)
+                    await this.browser.func.closeBrowser(desktopSession!.context, accountEmail)
+                  })
+
+                  return {
+                      initialPoints: 0,
+                      collectedPoints: 0
+                  }
+                }
 
                 try {
                     this.accessToken = await this.login.getAppAccessToken(this.mainMobilePage, accountEmail)

@@ -68,8 +68,8 @@ class AxiosClient {
                 return new HttpProxyAgent(proxyUrl)
             case 'https:':
                 return new HttpsProxyAgent(proxyUrl)
-            case 'socks4':
-            case 'socks5':
+            case 'socks4:':
+            case 'socks5:':
                 return new SocksProxyAgent(proxyUrl)
             default:
                 throw new Error(`Unsupported proxy protocol: ${protocol}. Only HTTP(S) is supported!`)

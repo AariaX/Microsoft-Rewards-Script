@@ -226,6 +226,7 @@ export class MicrosoftRewardsBot {
                 if (process.send) {
                     process.send({ __stats: stats })
                 }
+                process.exit()
             } catch (error) {
                 this.logger.error(
                     'main',

@@ -54,6 +54,7 @@
         "otpauth": "^9.4.1",
         "p-queue": "^9.0.1",
         "patchright": "^1.57.0",
+        "socks-proxy-agent": "^8.0.5",
         "ts-node": "^10.9.2"
     }
 }

@@ -75,6 +75,23 @@ class Browser {
 
         const context = await newInjectedContext(browser as any, { fingerprint: fingerprint })
 
+        await context.route('**/*', route => {
+          const request = route.request()
+          const resourceType = request.resourceType()
+
+          // Block unneeded resource types
+          if ([
+            'image',
+            'stylesheet',
+            'font',
+            'media'
+          ].includes(resourceType)) {
+            route.abort()
+          } else {
+            route.continue()
+          }
+        })
+
         await context.addInitScript(() => {
             Object.defineProperty(navigator, 'credentials', {
                 value: {

@@ -359,6 +359,7 @@ export class MicrosoftRewardsBot {
                 if (process.env.LOGIN_ONLY) {
                   this.logger.info('main', 'FLOW', `Login only mode enabled`)
                   await this.browser.func.closeBrowser(mobileSession!.context, accountEmail)
+                  mobileContextClosed = true
 
                   await executionContext.run({isMobile: false, accountEmail}, async () => {
                     const desktopSession = await this.browserFactory.createBrowser(account.proxy, accountEmail)

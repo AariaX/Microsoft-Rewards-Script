@@ -184,9 +184,9 @@ export class MicrosoftRewardsBot {
         }
 
         const onWorkerDone = async (label: 'exit' | 'disconnect', worker: Worker, code?: number): Promise<void> => {
-            if (!worker.process.pid) return;
+            if (!worker.process.pid) return
 
-            if (this.exitedWorkers.includes(worker.process.pid)) return;
+            if (this.exitedWorkers.includes(worker.process.pid)) return
             else this.exitedWorkers.push(worker.process.pid)
 
             this.activeWorkers -= 1
@@ -234,7 +234,7 @@ export class MicrosoftRewardsBot {
                 if (process.send) {
                     process.send({ __stats: stats })
                 }
-                process.exit()
+                process.disconnect()
             } catch (error) {
                 this.logger.error(
                     'main',

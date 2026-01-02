@@ -87,7 +87,7 @@ export class MicrosoftRewardsBot {
     private pointsCanCollect = 0
 
     private activeWorkers: number
-    private exitedWorkers: Number[]
+    private exitedWorkers: number[]
     private browserFactory: Browser = new Browser(this)
     private accounts: Account[]
     private workers: Workers

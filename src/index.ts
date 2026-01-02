@@ -87,6 +87,7 @@ export class MicrosoftRewardsBot {
     private pointsCanCollect = 0
 
     private activeWorkers: number
+    private exitedWorkers: Number[]
     private browserFactory: Browser = new Browser(this)
     private accounts: Account[]
     private workers: Workers
@@ -115,6 +116,7 @@ export class MicrosoftRewardsBot {
         }
         this.config = loadConfig()
         this.activeWorkers = this.config.clusters
+        this.exitedWorkers = []
     }
 
     get isMobile(): boolean {
@@ -182,12 +184,18 @@ export class MicrosoftRewardsBot {
         }
 
         const onWorkerDone = async (label: 'exit' | 'disconnect', worker: Worker, code?: number): Promise<void> => {
+            if (!worker.process.pid) return;
+
+            if (this.exitedWorkers.includes(worker.process.pid)) return;
+            else this.exitedWorkers.push(worker.process.pid)
+
             this.activeWorkers -= 1
             this.logger.warn(
                 'main',
                 `CLUSTER-WORKER-${label.toUpperCase()}`,
                 `Worker ${worker.process?.pid ?? '?'} ${label} | Code: ${code ?? 'n/a'} | Active workers: ${this.activeWorkers}`
             )
+
             if (this.activeWorkers <= 0) {
                 const totalCollectedPoints = allAccountStats.reduce((sum, s) => sum + s.collectedPoints, 0)
                 const totalInitialPoints = allAccountStats.reduce((sum, s) => sum + s.initialPoints, 0)

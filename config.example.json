@@ -75,6 +75,11 @@
             "enabled": false,
             "url": ""
         },
+        "telegram": {
+            "enabled": false,
+            "botToken": "",
+            "chatId": ""
+        },
         "ntfy": {
             "enabled": false,
             "url": "",

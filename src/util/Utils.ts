@@ -95,7 +95,7 @@ export default class Util {
     }
 
     getEmailUsername(email: string): string {
-        return email.split('@')[0] ?? 'Unknown'
+        return email ?? 'Unknown'
     }
 
     randomDelay(min: string | number, max: string | number): number {
